@@ -36,6 +36,7 @@ namespace Snake
             bool toUp = true;
             bool toDown = true;
 
+
             for (int bodyI = 0; bodyI < snake.Body.Length; bodyI++)
             {
                 var body = snake.Body[bodyI];
@@ -55,47 +56,56 @@ namespace Snake
                     if (body.Y == snake.Head.Y + 1)
                         toUp = false;
                 }
+
+                //Debug.WriteLine($"{body.X}, {body.Y} ; {snake.Head.X}, {snake.Head.Y}; {closestFoodPos.X}, {closestFoodPos.Y}; {game.Board.Height}, {game.Board.Width}\nLeft: {toLeft}; Right: {toRight}\nUp: {toUp}; Down: {toDown}\n" +
+                //    $"----------------------");
             }
 
             for (int enemySnakeI = 0; enemySnakeI < game.Board.Snakes.Length; enemySnakeI++)
             {
                 var enemySnake = game.Board.Snakes[enemySnakeI];
 
-                for (int enemyBodyI = 0; enemyBodyI < enemySnake.Body.Length; enemyBodyI++)
+                if (enemySnake.Alive)
                 {
-                    var body = enemySnake.Body[enemyBodyI];
-
-                    if (body.Y == snake.Head.Y)
+                    for (int enemyBodyI = 0; enemyBodyI < enemySnake.Body.Length; enemyBodyI++)
                     {
-                        if (body.X == snake.Head.X - 1)
+                        var body = enemySnake.Body[enemyBodyI];
+
+                        if (body.Y == snake.Head.Y)
+                        {
+                            if (body.X == snake.Head.X - 1)
+                                toLeft = false;
+                            if (body.X == snake.Head.X + 1)
+                                toRight = false;
+                        }
+
+                        if (body.X == snake.Head.X)
+                        {
+                            if (body.Y == snake.Head.Y - 1)
+                                toDown = false;
+                            if (body.Y == snake.Head.Y + 1)
+                                toUp = false;
+                        }
+
+                        //Debug.WriteLine($"{body.X}, {body.Y} ; {snake.Head.X}, {snake.Head.Y}; {closestFoodPos.X}, {closestFoodPos.Y}; {game.Board.Height}, {game.Board.Width}\nLeft: {toLeft}; Right: {toRight}\nUp: {toUp}; Down: {toDown}\n" +
+                        //    $"----------------------");
+                    }
+
+                    if (enemySnake.Head.Y == snake.Head.Y)
+                    {
+                        if (enemySnake.Head.X == snake.Head.X - 1)
                             toLeft = false;
-                        if (body.X == snake.Head.X + 1)
+                        if (enemySnake.Head.X == snake.Head.X + 1)
                             toRight = false;
                     }
 
-                    if (body.X == snake.Head.X)
+                    if (enemySnake.Head.X == snake.Head.X)
                     {
-                        if (body.Y == snake.Head.Y - 1)
+                        if (enemySnake.Head.Y == snake.Head.Y - 1)
                             toDown = false;
-                        if (body.Y == snake.Head.Y + 1)
+                        if (enemySnake.Head.Y == snake.Head.Y + 1)
                             toUp = false;
                     }
-                }
-
-                if (enemySnake.Head.Y == snake.Head.Y)
-                {
-                    if (enemySnake.Head.X == snake.Head.X - 1)
-                        toLeft = false;
-                    if (enemySnake.Head.X == snake.Head.X + 1)
-                        toRight = false;
-                }
-
-                if (enemySnake.Head.X == snake.Head.X)
-                {
-                    if (enemySnake.Head.Y == snake.Head.Y - 1)
-                        toDown = false;
-                    if (enemySnake.Head.Y == snake.Head.Y + 1)
-                        toUp = false;
                 }
             }
 
@@ -172,32 +182,40 @@ namespace Snake
             Direction direction;
             var snake = game.You;
 
-            Coordinate closestFoodPos = new Coordinate();
-            closestFoodPos.X = 0;
-            closestFoodPos.Y = 0;
-
-            for (int foodI = 0; foodI < game.Board.Food.Length; foodI++)
+            if(game.Board.Food == null)
             {
-                var food = game.Board.Food[foodI];
-
-                int distanceXHeadToFood = snake.Head.X - food.X;
-                int distanceYHeadToFood = snake.Head.Y - food.Y;
-
-                int distanceXHeadToClosestFood = snake.Head.X - closestFoodPos.X;
-                int distanceYHeadToClosestFood = snake.Head.Y - closestFoodPos.Y;
-
-                double distanceHeadToFood = Math.Sqrt(distanceXHeadToFood * distanceXHeadToFood + distanceYHeadToFood * distanceYHeadToFood);
-                double closestDistanceHeadToFood = Math.Sqrt(distanceXHeadToClosestFood * distanceXHeadToClosestFood + distanceYHeadToClosestFood * distanceYHeadToClosestFood);
-
-                if (closestDistanceHeadToFood > distanceHeadToFood)
-                {
-                    closestFoodPos.X = food.X;
-                    closestFoodPos.Y = food.Y;
-                }
+                direction = SnakeMovement(game, 0, 0);
             }
+            else
+            {
+                Coordinate closestFoodPos = new Coordinate();
+                closestFoodPos.X = 10000;
+                closestFoodPos.Y = 10000;
+
+                for (int foodI = 0; foodI < game.Board.Food.Length; foodI++)
+                {
+                    var food = game.Board.Food[foodI];
+
+                    int distanceXHeadToFood = snake.Head.X - food.X;
+                    int distanceYHeadToFood = snake.Head.Y - food.Y;
+
+                    int distanceXHeadToClosestFood = snake.Head.X - closestFoodPos.X;
+                    int distanceYHeadToClosestFood = snake.Head.Y - closestFoodPos.Y;
+
+                    double distanceHeadToFood = Math.Sqrt(distanceXHeadToFood * distanceXHeadToFood + distanceYHeadToFood * distanceYHeadToFood);
+                    double closestDistanceHeadToFood = Math.Sqrt(distanceXHeadToClosestFood * distanceXHeadToClosestFood + distanceYHeadToClosestFood * distanceYHeadToClosestFood);
+
+                    if (closestDistanceHeadToFood > distanceHeadToFood)
+                    {
+                        closestFoodPos.X = food.X;
+                        closestFoodPos.Y = food.Y;
+                    }
+                }
 
 
-            direction = SnakeMovement(game, closestFoodPos.X, closestFoodPos.Y);
+                direction = SnakeMovement(game, closestFoodPos.X, closestFoodPos.Y);
+
+            }
             /*if (snake.Head.X == closestFoodPos.X && snake.Head.Y == closestFoodPos.Y)
                 closestFoodPos = null;*/
 
