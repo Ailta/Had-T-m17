@@ -55,9 +55,48 @@ namespace Snake
                     if (body.Y == snake.Head.Y + 1)
                         toUp = false;
                 }
+            }
 
-                //Debug.WriteLine($"{body.X}, {body.Y} ; {snake.Head.X}, {snake.Head.Y}; {closestFoodPos.X}, {closestFoodPos.Y}; {game.Board.Height}, {game.Board.Width}\nLeft: {toLeft}; Right: {toRight}\nUp: {toUp}; Down: {toDown}\n" +
-                //    $"----------------------");
+            for (int enemySnakeI = 0; enemySnakeI < game.Board.Snakes.Length; enemySnakeI++)
+            {
+                var enemySnake = game.Board.Snakes[enemySnakeI];
+
+                for (int enemyBodyI = 0; enemyBodyI < enemySnake.Body.Length; enemyBodyI++)
+                {
+                    var body = enemySnake.Body[enemyBodyI];
+
+                    if (body.Y == snake.Head.Y)
+                    {
+                        if (body.X == snake.Head.X - 1)
+                            toLeft = false;
+                        if (body.X == snake.Head.X + 1)
+                            toRight = false;
+                    }
+
+                    if (body.X == snake.Head.X)
+                    {
+                        if (body.Y == snake.Head.Y - 1)
+                            toDown = false;
+                        if (body.Y == snake.Head.Y + 1)
+                            toUp = false;
+                    }
+                }
+
+                if (enemySnake.Head.Y == snake.Head.Y)
+                {
+                    if (enemySnake.Head.X == snake.Head.X - 1)
+                        toLeft = false;
+                    if (enemySnake.Head.X == snake.Head.X + 1)
+                        toRight = false;
+                }
+
+                if (enemySnake.Head.X == snake.Head.X)
+                {
+                    if (enemySnake.Head.Y == snake.Head.Y - 1)
+                        toDown = false;
+                    if (enemySnake.Head.Y == snake.Head.Y + 1)
+                        toUp = false;
+                }
             }
 
             for (int obstacleI = 0; obstacleI < game.Board.Obstacles.Length; obstacleI++)
