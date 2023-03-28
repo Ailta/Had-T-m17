@@ -26,196 +26,134 @@ namespace Snake
             return string.Empty;
         }
 
-        private Direction SnakeMovement(Game game, int X, int Y)
+        private void DebugWrite(Game game, int iteration, string text)
         {
-            Direction direction = Direction.Up;
-            var snake = game.You;
+            if (iteration == 0)
+                Debug.WriteLine(text);
+            else if (game.Iteration == iteration)
+                Debug.WriteLine(text);
+        }
 
-            bool toLeft = true;
-            bool toRight = true;
-            bool toUp = true;
-            bool toDown = true;
+        public bool CheckIfBlockedFor(Game game, Coordinate pos, Coordinate[] possibleObstacle)
+        {
+            bool isBlocked = false;
 
-
-            for (int bodyI = 0; bodyI < snake.Body.Length; bodyI++)
+            for (int obstacleI = 0; obstacleI < possibleObstacle.Length; obstacleI++)
             {
-                var body = snake.Body[bodyI];
+                var obstacle = possibleObstacle[obstacleI];
 
-                if (body.Y == snake.Head.Y)
-                {
-                    if (body.X == snake.Head.X - 1)
-                        toLeft = false;
-                    if (body.X == snake.Head.X + 1)
-                        toRight = false;
-                }
-
-                if (body.X == snake.Head.X)
-                {
-                    if (body.Y == snake.Head.Y - 1)
-                        toDown = false;
-                    if (body.Y == snake.Head.Y + 1)
-                        toUp = false;
-                }
-
-                //Debug.WriteLine($"{body.X}, {body.Y} ; {snake.Head.X}, {snake.Head.Y}; {closestFoodPos.X}, {closestFoodPos.Y}; {game.Board.Height}, {game.Board.Width}\nLeft: {toLeft}; Right: {toRight}\nUp: {toUp}; Down: {toDown}\n" +
-                //    $"----------------------");
+                if (obstacle.X == pos.X || obstacle.Y == pos.Y)
+                    isBlocked = true;
             }
 
+            return isBlocked;
+        }
+
+        public Tuple<bool, bool, bool> CheckIfBlocked(Game game, Coordinate pos)
+        {
+            bool isBlocked = false;
+            bool isBlockedByEnemyHead = false;
+            bool outsideOfBoundary = false;
+
+            // outside of board ?
+            if (game.Board.Width == pos.X || game.Board.Height == pos.Y)
+                isBlocked = true;
+            if (-1 == pos.Y || -1 == pos.X)
+                isBlocked = true;
+
+            // in obstacle ?
+            isBlocked = CheckIfBlockedFor(game, pos, game.Board.Obstacles);
+
+            // in our body ?
+            isBlocked = CheckIfBlockedFor(game, pos, game.You.Body);
+
+            // for enemy
             for (int enemySnakeI = 0; enemySnakeI < game.Board.Snakes.Length; enemySnakeI++)
             {
                 var enemySnake = game.Board.Snakes[enemySnakeI];
 
-                if (enemySnake.Alive)
-                {
-                    for (int enemyBodyI = 0; enemyBodyI < enemySnake.Body.Length; enemyBodyI++)
-                    {
-                        var body = enemySnake.Body[enemyBodyI];
+                // in enemy body ?
+                isBlocked = CheckIfBlockedFor(game, pos, enemySnake.Body);
 
-                        if (body.Y == snake.Head.Y)
-                        {
-                            if (body.X == snake.Head.X - 1)
-                                toLeft = false;
-                            if (body.X == snake.Head.X + 1)
-                                toRight = false;
-                        }
-
-                        if (body.X == snake.Head.X)
-                        {
-                            if (body.Y == snake.Head.Y - 1)
-                                toDown = false;
-                            if (body.Y == snake.Head.Y + 1)
-                                toUp = false;
-                        }
-
-                        //Debug.WriteLine($"{body.X}, {body.Y} ; {snake.Head.X}, {snake.Head.Y}; {closestFoodPos.X}, {closestFoodPos.Y}; {game.Board.Height}, {game.Board.Width}\nLeft: {toLeft}; Right: {toRight}\nUp: {toUp}; Down: {toDown}\n" +
-                        //    $"----------------------");
-                    }
-
-                    if (enemySnake.Head.Y == snake.Head.Y)
-                    {
-                        if (enemySnake.Head.X == snake.Head.X - 1)
-                            toLeft = false;
-                        if (enemySnake.Head.X == snake.Head.X + 1)
-                            toRight = false;
-                    }
-
-                    if (enemySnake.Head.X == snake.Head.X)
-                    {
-                        if (enemySnake.Head.Y == snake.Head.Y - 1)
-                            toDown = false;
-                        if (enemySnake.Head.Y == snake.Head.Y + 1)
-                            toUp = false;
-                    }
-                }
+                // in enemy head ?
+                if (enemySnake.Head.X == pos.X || enemySnake.Head.Y == pos.Y)
+                    isBlockedByEnemyHead = true;
             }
 
-            for (int obstacleI = 0; obstacleI < game.Board.Obstacles.Length; obstacleI++)
-            {
-                var obstacle = game.Board.Obstacles[obstacleI];
-
-                if (obstacle.Y == snake.Head.Y)
-                {
-                    if (obstacle.X == snake.Head.X - 1)
-                        toLeft = false;
-                    if (obstacle.X == snake.Head.X + 1)
-                        toRight = false;
-                }
-
-                if (obstacle.X == snake.Head.X)
-                {
-                    if (obstacle.Y == snake.Head.Y - 1)
-                        toDown = false;
-                    if (obstacle.Y == snake.Head.Y + 1)
-                        toUp = false;
-                }
-            }
-
-            if (snake.Head.X - 1 < 0)
-                toLeft = false;
-            if (snake.Head.Y - 1 < 0)
-                toDown = false;
-            if (snake.Head.X + 1 >= game.Board.Width)
-                toRight = false;
-            if (snake.Head.Y + 1 >= game.Board.Height)
-                toUp = false;
-
-            Debug.WriteLine($"Left: {toLeft}; Right: {toRight}\nUp: {toUp}; Down: {toDown}");
-
-            if (snake.Head.X > X && toLeft)
-            {
-                direction = Direction.Left;
-                Debug.WriteLine("levá");
-            }
-            else if (snake.Head.X < X && toRight)
-            {
-                direction = Direction.Right;
-                Debug.WriteLine("pravá");
-            }
-            else if (snake.Head.Y < Y && toUp)
-            {
-                direction = Direction.Up; 
-                Debug.WriteLine("hore");
-            }
-            else if (snake.Head.Y > Y && toDown)
-            {
-                direction = Direction.Down;
-                Debug.WriteLine("dole");
-            }
-            else
-            {
-                if (toRight)
-                    direction = Direction.Right;
-                if (toLeft)
-                    direction = Direction.Left;
-                if (toUp)
-                    direction = Direction.Up;
-                if (toDown)
-                    direction = Direction.Down;
-            }
-
-            return direction;
+            return new Tuple<bool, bool, bool>(isBlocked, isBlockedByEnemyHead, outsideOfBoundary);
         }
 
         // dostane data hry, vraci smer pohybu hada
         public Direction Move(Game game)
         {
             Direction direction;
+            direction = Direction.Left;
+
             var snake = game.You;
 
-            if(game.Board.Food == null)
-            {
-                direction = SnakeMovement(game, 0, 0);
-            }
-            else
-            {
-                Coordinate closestFoodPos = new Coordinate();
-                closestFoodPos.X = 10000;
-                closestFoodPos.Y = 10000;
+            int amountOfFields = game.Board.Height * game.Board.Width;
+            bool[] blockedFields = new bool[amountOfFields];
 
-                for (int foodI = 0; foodI < game.Board.Food.Length; foodI++)
+            Debug.WriteLine(amountOfFields);
+
+            for (int checkedFieldI = 0; checkedFieldI < amountOfFields; checkedFieldI++)
+            {
+                Coordinate checkingFieldPos = new Coordinate()
                 {
-                    var food = game.Board.Food[foodI];
+                    Y = checkedFieldI / game.Board.Width,
+                    X = checkedFieldI - (game.Board.Width * (checkedFieldI / game.Board.Width))
+                };
 
-                    int distanceXHeadToFood = snake.Head.X - food.X;
-                    int distanceYHeadToFood = snake.Head.Y - food.Y;
+                DebugWrite(game, 1, $"{checkedFieldI}: {checkingFieldPos.X}, {checkingFieldPos.Y}");
 
-                    int distanceXHeadToClosestFood = snake.Head.X - closestFoodPos.X;
-                    int distanceYHeadToClosestFood = snake.Head.Y - closestFoodPos.Y;
+                Tuple<bool, bool, bool> checkingField = CheckIfBlocked(game, new Coordinate() { X = checkingFieldPos.X, Y = checkingFieldPos.Y });
+                Tuple<bool, bool, bool> checkingFieldLeft = CheckIfBlocked(game, new Coordinate() { X = checkingFieldPos.X - 1, Y = checkingFieldPos.Y });
+                Tuple<bool, bool, bool> checkingFieldRight = CheckIfBlocked(game, new Coordinate() { X = checkingFieldPos.X + 1, Y = checkingFieldPos.Y });
+                Tuple<bool, bool, bool> checkingFieldUp = CheckIfBlocked(game, new Coordinate() { X = checkingFieldPos.X, Y = checkingFieldPos.Y + 1 });
+                Tuple<bool, bool, bool> checkingFieldDown = CheckIfBlocked(game, new Coordinate() { X = checkingFieldPos.X, Y = checkingFieldPos.Y - 1 });
 
-                    double distanceHeadToFood = Math.Sqrt(distanceXHeadToFood * distanceXHeadToFood + distanceYHeadToFood * distanceYHeadToFood);
-                    double closestDistanceHeadToFood = Math.Sqrt(distanceXHeadToClosestFood * distanceXHeadToClosestFood + distanceYHeadToClosestFood * distanceYHeadToClosestFood);
-
-                    if (closestDistanceHeadToFood > distanceHeadToFood)
-                    {
-                        closestFoodPos.X = food.X;
-                        closestFoodPos.Y = food.Y;
-                    }
+                if (!checkingField.Item3)
+                {
+                    if (checkingFieldRight.Item1)
+                        blockedFields[(checkingFieldPos.X - 1) + (checkingFieldPos.Y * 12)] = true;
+                    if (checkingFieldRight.Item2)
+                        blockedFields[(checkingFieldPos.X) + (checkingFieldPos.Y * 12)] = true;
                 }
 
+                if (!checkingFieldLeft.Item3)
+                {
+                    if (checkingFieldLeft.Item1)
+                        blockedFields[(checkingFieldPos.X - 1) + (checkingFieldPos.Y * 12)] = true;
+                    if (checkingFieldLeft.Item2)
+                        blockedFields[(checkingFieldPos.X) + (checkingFieldPos.Y * 12)] = true;
+                }
 
-                direction = SnakeMovement(game, closestFoodPos.X, closestFoodPos.Y);
+                if (!checkingFieldRight.Item3)
+                {
+                    if (checkingFieldRight.Item1)
+                        blockedFields[(checkingFieldPos.X - 1) + (checkingFieldPos.Y * 12)] = true;
+                    if (checkingFieldRight.Item2)
+                        blockedFields[(checkingFieldPos.X) + (checkingFieldPos.Y * 12)] = true;
+                }
+
+                if (!checkingFieldUp.Item3)
+                {
+                    if (checkingFieldUp.Item1)
+                        blockedFields[(checkingFieldPos.X - 1) + (checkingFieldPos.Y * 12)] = true;
+                    if (checkingFieldUp.Item2)
+                        blockedFields[(checkingFieldPos.X) + (checkingFieldPos.Y * 12)] = true;
+                }
+
+                if (!checkingFieldDown.Item3)
+                {
+                    if (checkingFieldDown.Item1)
+                        blockedFields[(checkingFieldPos.X - 1) + (checkingFieldPos.Y * 12)] = true;
+                    if (checkingFieldDown.Item2)
+                        blockedFields[(checkingFieldPos.X) + (checkingFieldPos.Y * 12)] = true;
+                }
 
             }
+
             /*if (snake.Head.X == closestFoodPos.X && snake.Head.Y == closestFoodPos.Y)
                 closestFoodPos = null;*/
 
