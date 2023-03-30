@@ -34,6 +34,52 @@ namespace Snake
                 Debug.WriteLine(text);
         }
 
+        private void DebugDraw(Game game, Direction direction, bool[]? blockedFields)
+        {
+            Coordinate snakePos = new Coordinate() { X = game.You.Head.X, Y = game.You.Head.Y };
+
+            if (direction == Direction.Right)
+                snakePos.X++;
+            else if (direction == Direction.Left)
+                snakePos.X--;
+            else if (direction == Direction.Up)
+                snakePos.Y++;
+            else if (direction == Direction.Down)
+                snakePos.Y--;
+
+            for (int height = game.Board.Height; height > 0; height--)
+            {
+                Console.WriteLine();
+                for(int width = 0; width < game.Board.Width; width++)
+                {
+                    Console.BackgroundColor = ConsoleColor.White;
+                    if (width == 0 && height == game.Board.Height)
+                        Console.BackgroundColor = ConsoleColor.Green;
+
+                    for(int blockedFieldI = 0; blockedFieldI < blockedFields.Length; blockedFieldI++)
+                    {
+                       /* if (blockedFields[blockedFieldI])
+                        {
+                            Debug.WriteLine(blockedFieldI / game.Board.Width);
+                            Debug.WriteLine(blockedFieldI - (game.Board.Width * (blockedFieldI / game.Board.Width)));
+                        }*/
+                        if (width == game.Board.Width - 1)
+                            Console.BackgroundColor = ConsoleColor.Red;
+                    }
+
+                    if (snakePos.X == width && snakePos.Y == height)
+                        Console.Write("H");
+                    else
+                        Console.Write(" ");
+                    Console.BackgroundColor = ConsoleColor.Black;
+                }
+            }
+
+            Console.WriteLine();
+            Console.WriteLine($"HeadPos: {game.You.Head.X}, {game.You.Head.Y}");
+
+        }
+
         public bool CheckIfBlockedFor(Game game, Coordinate pos, Coordinate[] possibleObstacle)
         {
             bool isBlocked = false;
@@ -55,20 +101,18 @@ namespace Snake
             bool isBlockedByEnemyHead = false;
             bool outsideOfBoundary = false;
 
-            // outside of board ?
-            if (game.Board.Width == pos.X || game.Board.Height == pos.Y)
-                isBlocked = true;
-            if (-1 == pos.Y || -1 == pos.X)
-                isBlocked = true;
-
             // in obstacle ?
-            isBlocked = CheckIfBlockedFor(game, pos, game.Board.Obstacles);
+            //isBlocked = CheckIfBlockedFor(game, pos, game.Board.Obstacles);
 
             // in our body ?
             isBlocked = CheckIfBlockedFor(game, pos, game.You.Body);
 
+            // in our head ?
+            if (game.You.Head.X == pos.X || game.You.Head.Y == pos.Y)
+                isBlocked = true;
+
             // for enemy
-            for (int enemySnakeI = 0; enemySnakeI < game.Board.Snakes.Length; enemySnakeI++)
+            /*for (int enemySnakeI = 0; enemySnakeI < game.Board.Snakes.Length; enemySnakeI++)
             {
                 var enemySnake = game.Board.Snakes[enemySnakeI];
 
@@ -78,7 +122,7 @@ namespace Snake
                 // in enemy head ?
                 if (enemySnake.Head.X == pos.X || enemySnake.Head.Y == pos.Y)
                     isBlockedByEnemyHead = true;
-            }
+            }*/
 
             return new Tuple<bool, bool, bool>(isBlocked, isBlockedByEnemyHead, outsideOfBoundary);
         }
@@ -87,14 +131,14 @@ namespace Snake
         public Direction Move(Game game)
         {
             Direction direction;
-            direction = Direction.Left;
+            direction = Direction.Up;
 
             var snake = game.You;
 
             int amountOfFields = game.Board.Height * game.Board.Width;
             bool[] blockedFields = new bool[amountOfFields];
 
-            Debug.WriteLine(amountOfFields);
+            //Debug.WriteLine(amountOfFields);
 
             for (int checkedFieldI = 0; checkedFieldI < amountOfFields; checkedFieldI++)
             {
@@ -104,7 +148,7 @@ namespace Snake
                     X = checkedFieldI - (game.Board.Width * (checkedFieldI / game.Board.Width))
                 };
 
-                DebugWrite(game, 1, $"{checkedFieldI}: {checkingFieldPos.X}, {checkingFieldPos.Y}");
+                //DebugWrite(game, 1, $"{checkedFieldI}: {checkingFieldPos.X}, {checkingFieldPos.Y}");
 
                 Tuple<bool, bool, bool> checkingField = CheckIfBlocked(game, new Coordinate() { X = checkingFieldPos.X, Y = checkingFieldPos.Y });
                 Tuple<bool, bool, bool> checkingFieldLeft = CheckIfBlocked(game, new Coordinate() { X = checkingFieldPos.X - 1, Y = checkingFieldPos.Y });
@@ -114,13 +158,13 @@ namespace Snake
 
                 if (!checkingField.Item3)
                 {
-                    if (checkingFieldRight.Item1)
+                    if (checkingField.Item1)
                         blockedFields[(checkingFieldPos.X - 1) + (checkingFieldPos.Y * 12)] = true;
-                    if (checkingFieldRight.Item2)
+                    if (checkingField.Item2)
                         blockedFields[(checkingFieldPos.X) + (checkingFieldPos.Y * 12)] = true;
                 }
 
-                if (!checkingFieldLeft.Item3)
+                /*if (!checkingFieldLeft.Item3)
                 {
                     if (checkingFieldLeft.Item1)
                         blockedFields[(checkingFieldPos.X - 1) + (checkingFieldPos.Y * 12)] = true;
@@ -150,9 +194,22 @@ namespace Snake
                         blockedFields[(checkingFieldPos.X - 1) + (checkingFieldPos.Y * 12)] = true;
                     if (checkingFieldDown.Item2)
                         blockedFields[(checkingFieldPos.X) + (checkingFieldPos.Y * 12)] = true;
-                }
+                }*/
 
             }
+
+            Console.WriteLine();
+            Console.WriteLine();
+            /*for (int blockedFieldI = 0; blockedFieldI < blockedFields.Length; blockedFieldI++)
+            {
+                if (blockedFields[blockedFieldI])
+                {
+                    Debug.WriteLine(blockedFieldI / game.Board.Width);
+                    Debug.WriteLine(blockedFieldI - (game.Board.Width * (blockedFieldI / game.Board.Width)));
+                }
+            }*/
+            Debug.WriteLine(blockedFields.Length);
+            DebugDraw(game, direction, blockedFields);
 
             /*if (snake.Head.X == closestFoodPos.X && snake.Head.Y == closestFoodPos.Y)
                 closestFoodPos = null;*/
